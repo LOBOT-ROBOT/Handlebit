@@ -42,7 +42,6 @@
 	"handlebit.HandleLights.Light2|block":"彩灯2",
 	"handlebit.HandleLights.All|block":"全部",
 	"handlebit.HandleFanPort.port1|block":"接口1",
-	"handlebit.HandleFanPort.port2|block":"接口2",
 	"handlebit.HandleKnobPort.port1|block":"接口1",
 	"handlebit.handlebit_ultrasonic|block":"超声波传感|%port|器值(Cm)",
 	"handlebit.handle_setFanSpeed|block":"设置风扇接口|%port|和速度|%speed|(-100~100)",
