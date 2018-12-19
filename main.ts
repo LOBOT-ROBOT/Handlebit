@@ -46,9 +46,7 @@ namespace handlebit {
 
     export enum ultrasonicPort {
         //% block="Port 1"
-        port1 = 0x01,
-        //% block="Port 2"
-        port2 = 0x02
+        port1 = 0x01
     }
     
     export enum colorSensorPort {
@@ -81,14 +79,14 @@ namespace handlebit {
 
     export enum HandleFanPort {
         //% block="Port 1"
-        port1 = 0x01,
-        //% block="Port 2"
-        port2 = 0x02
+        port1 = 0x01
     }
 
     export enum HandleKnobPort {
         //% block="Port 1"
-        port1 = 0x01
+        port1 = 0x01,
+        //% block="Port 2"
+        port2 = 0x02
     }
 
     let lhRGBLight: HandleRGBLight.LHRGBLight;
@@ -790,17 +788,7 @@ namespace handlebit {
 export function handlebit_ultrasonic(port: ultrasonicPort): number {
     let echoPin: DigitalPin = DigitalPin.P1;
     let trigPin: DigitalPin = DigitalPin.P2;
-    switch (port)
-    {
-        case ultrasonicPort.port1:
-            echoPin = DigitalPin.P1;
-            trigPin = DigitalPin.P2;
-            break;
-        case ultrasonicPort.port2:
-            echoPin = DigitalPin.P19;
-            trigPin = DigitalPin.P20;
-            break;
-    }
+
     pins.setPull(echoPin, PinPullMode.PullNone);
     pins.setPull(trigPin, PinPullMode.PullNone);
     pins.digitalWritePin(trigPin, 0);
@@ -844,21 +832,6 @@ export function handle_setFanSpeed(port: HandleFanPort, speed: number)
             pins.analogWritePin(AnalogPin.P1,0);
         }
     }
-    else if (port == HandleFanPort.port2)
-    {
-        if(speed >= 0)
-        {
-            value = mapRGB(speed, 0, 100, 0, 1023);
-            pins.analogWritePin(AnalogPin.P19, value);
-            pins.analogWritePin(AnalogPin.P20,0);
-        }  
-        else if (speed < 0)
-        {
-            value = mapRGB(-1*speed, 0, 100, 0, 1023);
-            pins.analogWritePin(AnalogPin.P20, value);
-            pins.analogWritePin(AnalogPin.P19,0);
-        }
-    }
 }
     
     /**
@@ -872,6 +845,10 @@ export function handle_setFanSpeed(port: HandleFanPort, speed: number)
         {
             knobValue = pins.analogReadPin(AnalogPin.P1); 
         }
+        else if (port == HandleKnobPort.port2)
+        {
+            knobValue = pins.analogReadPin(AnalogPin.P20); 
+        }
         knobValue = mapRGB(knobValue, 0, 1023, 0, 100);
         return knobValue;
     }
@@ -880,16 +857,16 @@ export function handle_setFanSpeed(port: HandleFanPort, speed: number)
      * Check touch button status
      */
     //% weight=74 blockId=handle_getTouchValue block="The touch button |port %port| is pressd"
-    export function handle_getTouchValue(port: ultrasonicPort):boolean
+    export function handle_getTouchValue(port: HandleKnobPort):boolean
     {
         let value: number;
-        if (port == ultrasonicPort.port1)
+        if (port == HandleKnobPort.port1)
         {
             value = pins.digitalReadPin(DigitalPin.P1); 
         }
-        else if (port == ultrasonicPort.port2)
+        else if (port == HandleKnobPort.port2)
         {
-            value = pins.digitalReadPin(DigitalPin.P19); 
+            value = pins.digitalReadPin(DigitalPin.P20); 
         }
 
        if (value == 0)

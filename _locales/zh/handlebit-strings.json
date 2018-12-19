@@ -37,7 +37,6 @@
 	"handlebit.handle_getHandleSensorValue|block":"手柄|%type|传感器值",
 	"handlebit.setLedBrightness|block":"设置灯光亮度|%brightness|级",
 	"handlebit.ultrasonicPort.port1|block":"接口1",
-	"handlebit.ultrasonicPort.port2|block":"接口2",
 	"handlebit.colorSensorPort.port2|block":"接口2",
 	"handlebit.HandleLights.Light1|block":"彩灯1",
 	"handlebit.HandleLights.Light2|block":"彩灯2",
