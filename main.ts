@@ -786,8 +786,8 @@ namespace handlebit {
 */  
 //% weight=80 blockId=handlebit_ultrasonic  block="Ultrasonic|port %port|distance(cm)"
 export function handlebit_ultrasonic(port: ultrasonicPort): number {
-    let echoPin: DigitalPin = DigitalPin.P1;
-    let trigPin: DigitalPin = DigitalPin.P2;
+    let echoPin: DigitalPin = DigitalPin.P2;
+    let trigPin: DigitalPin = DigitalPin.P1;
 
     pins.setPull(echoPin, PinPullMode.PullNone);
     pins.setPull(trigPin, PinPullMode.PullNone);
@@ -822,14 +822,14 @@ export function handle_setFanSpeed(port: HandleFanPort, speed: number)
         if(speed >= 0)
         {
             value = mapRGB(speed, 0, 100, 0, 1023);
-            pins.analogWritePin(AnalogPin.P1, value);
-            pins.analogWritePin(AnalogPin.P2,0);
+            pins.analogWritePin(AnalogPin.P2, value);
+            pins.analogWritePin(AnalogPin.P1,0);
         }  
         else if (speed < 0)
         {
             value = mapRGB(-1*speed, 0, 100, 0, 1023);
-            pins.analogWritePin(AnalogPin.P2, value);
-            pins.analogWritePin(AnalogPin.P1,0);
+            pins.analogWritePin(AnalogPin.P1, value);
+            pins.analogWritePin(AnalogPin.P2,0);
         }
     }
 }
