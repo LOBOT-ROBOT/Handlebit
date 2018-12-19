@@ -87,6 +87,13 @@ namespace handlebit {
         port1 = 0x01
     }
 
+    export enum HandleTouchPort {
+        //% block="Port 1"
+        port1 = 0x01,
+        //% block="Port 2"
+        port2 = 0x02       
+    }
+
     let lhRGBLight: HandleRGBLight.LHRGBLight;
 	let R_F: number;
 	let r_f: number;
@@ -848,10 +855,14 @@ export function handle_setFanSpeed(port: HandleFanPort, speed: number)
      * Check touch button status
      */
     //% weight=74 blockId=handle_getTouchValue block="The touch button |port %port| is pressd"
-    export function handle_getTouchValue(port: HandleKnobPort):boolean
+    export function handle_getTouchValue(port: HandleTouchPort):boolean
     {
-        let value = pins.digitalReadPin(DigitalPin.P1); 
-       if (value == 0)
+        let value: number;
+        if(port == HandleTouchPort.port1)
+            value = pins.digitalReadPin(DigitalPin.P1);
+        else if (port == HandleTouchPort.port2)
+            value = pins.digitalReadPin(DigitalPin.P20);
+        if (value == 0)
         {
             return true;   
         }
