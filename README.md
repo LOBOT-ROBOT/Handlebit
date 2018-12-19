@@ -12,6 +12,6 @@ MIT
 (The metadata above is needed for package search.)
 
 ```package
-handlebit=github:LewanSoul2018/Handlebit
+handlebit=github:LOBOT-ROBOT/Handlebit
 ```
 
