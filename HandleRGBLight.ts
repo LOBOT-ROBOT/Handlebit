@@ -69,7 +69,17 @@ namespace HandleRGBLight {
         }
 
         setPixelColor(pixeloffset: number, rgb: HandleRGBColors): void {
-            this.setPixelRGB(pixeloffset, rgb);
+            if (pixeloffset == this._length)//全部
+            {
+                for (let i = 0; i < this._length; i++)
+                {
+                    this.setPixelRGB(i, rgb);     
+                }
+            }
+            else
+            {
+                this.setPixelRGB(pixeloffset, rgb);
+            }
         }
 
         private setPixelRGB(pixeloffset: number, rgb: HandleRGBColors): void {

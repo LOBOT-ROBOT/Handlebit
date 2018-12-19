@@ -14,8 +14,6 @@ namespace handlebit {
     }
         
     export enum HandleButton {
-        //% block="Touch key"
-        TOUCHKEY = EventBusValue.MES_DPAD_BUTTON_1_DOWN,
         //% block="B1"
         B1 = EventBusValue.MES_DPAD_BUTTON_2_DOWN,
         //% block="B2"
@@ -34,8 +32,6 @@ namespace handlebit {
     export enum HandleSensorValue {
         //% block="Sound"
         SOUND,
-        //% block="Light"
-        LIGHT, 
         //% block="Power"
         POWER,
         //% block="Left joystick X"
@@ -45,13 +41,55 @@ namespace handlebit {
         //% block="Right joystick X"
         JOYSTICK_X2,
         //% block="Right joystick Y"
-        JOYSTICK_Y2,
-        //% block="Ultrasonic"
-        ULTRASONIC,
-        //% block="konb"
-        KNOB
+        JOYSTICK_Y2
     }
 
+    export enum ultrasonicPort {
+        //% block="Port 1"
+        port1 = 0x01,
+        //% block="Port 2"
+        port2 = 0x02
+    }
+    
+    export enum colorSensorPort {
+        //% block="Port 2"
+        port2 = 0x02
+    }
+
+    export enum handle_Colors {
+        //% block="Red"
+        Red = 0x01,
+        //% block="Green"
+        Green = 0x02,
+        //% block="Blue"
+        Blue = 0x03,
+	    //% block="Black"
+        Black = 0x04,
+        //% block="White"
+        White = 0x05
+    }
+
+
+  export  enum HandleLights {
+        //% block="Light 1"
+        Light1 = 0x00,
+        //% block="Light 2"
+        Light2 = 0x01,
+        //% block="All"
+        All = 0x02
+    }
+
+    export enum HandleFanPort {
+        //% block="Port 1"
+        port1 = 0x01,
+        //% block="Port 2"
+        port2 = 0x02
+    }
+
+    export enum HandleKnobPort {
+        //% block="Port 1"
+        port1 = 0x01
+    }
 
     let lhRGBLight: HandleRGBLight.LHRGBLight;
 	let R_F: number;
@@ -64,7 +102,6 @@ namespace handlebit {
     let B_F: number;
 
     let Sound: number = -1;
-    let Light: number = -1;
     let Power: number = -1;
     let JoystickX1: number = -1;
     let JoystickX2: number = -1;
@@ -97,80 +134,40 @@ namespace handlebit {
       });
 }
 
-/**
-* Set the angle of the servo, range from 0 to 180 degree
-*/
-//% weight=98 blockId=setServoPosition block="Set servo|angle %angle|duration %duration"
-//% angle.min=0 angle.max=180
-    export function setServoPosition(angle: number, duration: number) {
-        if (angle > 180 || angle < 0)
-        {
-            return; 
-        }    
-        let position = mapRGB(angle, 0, 180, 500, 2500);
-       
-	   let buf = pins.createBuffer(10);
-	   buf[0] = 0x55;
-	   buf[1] = 0x55;
-	   buf[2] = 0x08;
-	   buf[3] = 0x03;//cmd type
-	   buf[4] = 0x01;
-	   buf[5] = duration & 0xff;
-	   buf[6] = (duration >> 8) & 0xff;
-	   buf[7] = 0x01;
-	   buf[8] = position & 0xff;
-	   buf[9] = (position >> 8) & 0xff;
-	   serial.writeBuffer(buf);
-}
-    
-/**
-*	Set the speed of motor, range from -100 to 100.
-*/
-//% weight=97  blockId=setMotorSpeed block="Set motor speed|%speed"
-//% speed.min=-100 speed.max=100
-    export function setMotorSpeed(speed: number) {
-        if (speed > 100 || speed < -100) {
-        return;
-        }
-        speed = speed * -1;
-    let buf = pins.createBuffer(5);
-    buf[0] = 0x55;
-    buf[1] = 0x55;
-    buf[2] = 0x03;
-    buf[3] = 0x32;//cmd type
-    buf[4] = speed;
-    serial.writeBuffer(buf);
-}    
     /**
 	 * Initialize RGB
 	 */
 	function initRGBLight() {
 		if (!lhRGBLight) {
-			lhRGBLight = HandleRGBLight.create(DigitalPin.P15, 1, HandleRGBPixelMode.RGB);
+			lhRGBLight = HandleRGBLight.create(DigitalPin.P15, 2, HandleRGBPixelMode.RGB);
 		}
     }
     
     /**
      * Set the color of the colored lights.
      */
-    //% weight=96 blockId=setPixelRGB block="Set light color to %rgb"
-    export function setPixelRGB(rgb: HandleRGBColors)
+    //% weight=96 blockId=setPixelRGB block="Set|%lightoffset|color to %rgb"
+    export function handle_setPixelRGB(lightoffset: HandleLights,rgb: HandleRGBColors)
     {
-        lhRGBLight.setPixelColor(0, rgb);
-        lhRGBLight.show();
+        lhRGBLight.setPixelColor(lightoffset, rgb);
     }
     /**
      * Set RGB Color argument
      */
-    //% weight=94 blockId=setPixelRGBArgs block="Set light color to %rgb,range from 1 to 9"
+    //% weight=94 blockId=setPixelRGBArgs block="Set|%lightoffset|color to %rgb,color range from 1 to 9"
     //% rgb.min=1 rgb.max=9
-    export function setPixelRGBArgs(rgb: number)
+    export function handle_setPixelRGBArgs(lightoffset: HandleLights,rgb: number)
     {
-        lhRGBLight.setPixelColor(0, rgb);
-        lhRGBLight.show();
+        lhRGBLight.setPixelColor(lightoffset, rgb);
     }
    
-
+    /**
+     * Display the colored lights, and set the color of the colored lights to match the use. After setting the color of the colored lights, the color of the lights must be displayed.
+     */
+    //% weight=72 blockId=qdee_showLight block="Show light"
+    export function handle_showLight() {
+        lhRGBLight.show();
+    }
     /**
      * Clear the color of the colored lights and turn off the lights.
      */
@@ -303,8 +300,6 @@ namespace handlebit {
         
      function setMode(mode: number, enable: number) {
          let reg_val = getMode();
-         serial.writeLine("mode:");
-         serial.writeNumber(reg_val);
             /* Change bit(s) in ENABLE register */
         enable = enable & 0x01;
          if (mode >= 0 && mode <= 6)
@@ -449,97 +444,68 @@ namespace handlebit {
 		control.waitMicros(100);
 	}
 
-	/**
-	 * Color sensor white calibration, each time you turn on the first use of the color sensor the white must be corrected at first.
+    /**
+ * Initialize the color sensor,please execute at boot time
+ */
+    //% weight=90 blockId=handle_init_colorSensor block="Initialize color sensor port at %port"
+    export function handle_init_colorSensor(port: colorSensorPort) {
+            InitColor();
+            enableLightSensor(false);
+            control.waitMicros(100);
+    }
+
+
+  /**
+	 *  Color sensor return the color.
 	 */
-	//% weight=90 blockId=adjustWhite block="Adjust white color"
-	export function adjustWhite() {
-		R_F = readRedLight();
-		G_F = readGreenLight();
-		B_F = readBlueLight();
-
-    	//Measure twice, and then calculate their average.
-    	R_F =  (readRedLight() + R_F) / 2;
-   	 	G_F = (readGreenLight() + G_F) / 2;
-    	B_F = (readBlueLight() + B_F) / 2 ;
-
-	}
-
-
-	/**
-	 * Color sensor black calibration, each time you turn on the first use of the color sensor the white must be adjusted at first then adjust black.
-	 */
-	//% weight=88 blockId=adjustBlack block="Adjust black color"
-	export function adjustBlack() {
-		r_f = readRedLight();
-		g_f = readGreenLight();
-		b_f = readBlueLight();
-
-		//Measure twice, and then calculate their average.
-		r_f = (readRedLight() + r_f) / 2;
-		g_f = (readGreenLight() + g_f) / 2;
-		b_f = (readBlueLight() + b_f) / 2;
-	}
-
-	/**
-	 *  Color sensor to obtain color value, white and black must be corrected before execution.
-	 */
-	//% weight=86 blockGap=50 blockId=checkCurrentColor block="Current color %color"
-	export function checkCurrentColor(color: Colors): boolean {
+	//% weight=88 blockId=handle_checkCurrentColor block="Current color %color"
+    export function handle_checkCurrentColor(color: handle_Colors): boolean {
 		let r = readRedLight();
 		let g = readGreenLight();
 		let b = readBlueLight();
-        let t = Colors.Red;
-        
-        // serial.writeLine("rgb:");
-        // serial.writeNumber(r);
-        // serial.writeLine(" ");
-        // serial.writeNumber(g);
-        // serial.writeLine(" ");
-        // serial.writeNumber(b);
-
-        if (r < r_f || r > R_F || g < g_f || g > G_F || b < b_f || b > B_F)
-        {
-           // serial.writeLine("none1");
-            return false; 
-        }       
-
-		r = mapRGB(r, r_f, R_F, 0, 255);
-		g = mapRGB(g, g_f, G_F, 0, 255);
-        b = mapRGB(b, b_f, B_F, 0, 255);
-        
-        // serial.writeLine("rgb:");
-        // serial.writeNumber(r);
-        // serial.writeLine(" ");
-        // serial.writeNumber(g);
-        // serial.writeLine(" ");
-        // serial.writeNumber(b);
-        // serial.writeLine(" ");
+        let t = handle_Colors.Red;
+    
 		if (r > g)
 		{
-			t = Colors.Red;
+			t = handle_Colors.Red;
 		}	
 		else
 		{
-			t = Colors.Green;
+			t = handle_Colors.Green;
 		}	
 
-		if (t == Colors.Green && g < b)
+		if (t == handle_Colors.Green && g < b)
 		{
-			t = Colors.Blue;
+			t = handle_Colors.Blue;
 		}	
-		if (t == Colors.Red && r < b)
+		if (t == handle_Colors.Red && r < b)
 		{
-			t = Colors.Blue;
-		}
-
-		if (t == Colors.Blue && b > 50) {
+			t = handle_Colors.Blue;
+         }
+        //  serial.writeNumber(r); 
+        //  serial.writeLine("->red");
+        //  serial.writeNumber(g); 
+        //  serial.writeLine("->green"); 
+        //  serial.writeNumber(b); 
+        //  serial.writeLine("->blue"); 
+        if(r < 260 && g < 260 && b < 530)
+		{
+            t = handle_Colors.Black;
+            return (color == t);
+        }
+        else if (r > 3200 && g > 5000 && b > 7000)
+        {
+            t = handle_Colors.White;
+            return (color == t);
+        }
+		if (t == handle_Colors.Blue && b > 2000) {
            // serial.writeLine("blue");
+            
 		}
-		else if (t == Colors.Green && g > 50) {
+		else if (t == handle_Colors.Green && g > 1200) {
            // serial.writeLine("green");
 		}
-		else if (t == Colors.Red && r > 50) {
+		else if (t == handle_Colors.Red && r > 1200) {
 			//serial.writeLine("red");
 		}
 		else
@@ -549,6 +515,7 @@ namespace handlebit {
         }		
         return (color == t);
 	}
+
 
 	function mapRGB(x: number, in_min: number, in_max: number, out_min: number, out_max: number): number {
 		return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
@@ -584,9 +551,9 @@ namespace handlebit {
                         }    
                         switch (argsInt)
                         {
-                            case 1:
-                                control.raiseEvent(EventBusSource.MES_DPAD_CONTROLLER_ID,HandleButton.TOUCHKEY);
-                                break;  
+                            // case 1:
+                            //     control.raiseEvent(EventBusSource.MES_DPAD_CONTROLLER_ID,HandleButton.TOUCHKEY);
+                            //     break;  
                                 
                             case 3:
                                 control.raiseEvent(EventBusSource.MES_DPAD_CONTROLLER_ID,HandleButton.B1);    
@@ -628,17 +595,17 @@ namespace handlebit {
                     }  
                     Sound = argsInt;
                 }    
-                else if (cmd.charAt(0).compare("L") == 0 && cmd.length == 3)
-                {
-                    let args: string = cmd.substr(1, 2);
-                    let argsInt: number = strToNumber(args);
-                    if (argsInt == -1)
-                    {
-                        handleCmd = "";
-                        return;
-                    }  
-                    Light = 255 - argsInt;
-                }    
+                // else if (cmd.charAt(0).compare("L") == 0 && cmd.length == 3)
+                // {
+                //     let args: string = cmd.substr(1, 2);
+                //     let argsInt: number = strToNumber(args);
+                //     if (argsInt == -1)
+                //     {
+                //         handleCmd = "";
+                //         return;
+                //     }  
+                //     Light = 255 - argsInt;
+                // }    
                 else if (cmd.charAt(0).compare("P") == 0 && cmd.length == 5)
                 {
                     let args: string = cmd.substr(1, 4);
@@ -688,28 +655,28 @@ namespace handlebit {
                     }  
                     JoystickY2 = argsInt;
                 }  
-                else if (cmd.charAt(0).compare("U") == 0 && cmd.length == 5)
-                {
-                    let args: string = cmd.substr(1, 4);
-                    let argsInt: number = strToNumber(args);
-                    if (argsInt == -1)
-                    {
-                        handleCmd = "";
-                        return;
-                    }  
-                    UltrasonicValue = argsInt;
-                }  
-                else if (cmd.charAt(0).compare("R") == 0 && cmd.length == 3)
-                {
-                    let args: string = cmd.substr(1, 2);
-                    let argsInt: number = strToNumber(args);
-                    if (argsInt == -1)
-                    {
-                        handleCmd = "";
-                        return;
-                    }  
-                    Knob = argsInt;
-                }  
+                // else if (cmd.charAt(0).compare("U") == 0 && cmd.length == 5)
+                // {
+                //     let args: string = cmd.substr(1, 4);
+                //     let argsInt: number = strToNumber(args);
+                //     if (argsInt == -1)
+                //     {
+                //         handleCmd = "";
+                //         return;
+                //     }  
+                //     UltrasonicValue = argsInt;
+                // }  
+                // else if (cmd.charAt(0).compare("R") == 0 && cmd.length == 3)
+                // {
+                //     let args: string = cmd.substr(1, 2);
+                //     let argsInt: number = strToNumber(args);
+                //     if (argsInt == -1)
+                //     {
+                //         handleCmd = "";
+                //         return;
+                //     }  
+                //     Knob = argsInt;
+                // }  
                 startIndex = index + 1; 
             }   
             
@@ -757,20 +724,17 @@ namespace handlebit {
     /**
      * Returns the handle sensor value.
      */
-    //% weight=82 blockGap=50 blockId=getHandleSensorValue block="handle|%type|sensor value"
-    export function getHandleSensorValue(type: HandleSensorValue): number {
+    //% weight=82 blockGap=50 blockId=handle_getHandleSensorValue block="handle|%type|sensor value"
+    export function handle_getHandleSensorValue(type: HandleSensorValue): number {
         let value: number = 0;
         switch (type)
         {
             case HandleSensorValue.SOUND: value = Sound; break;
-            case HandleSensorValue.LIGHT: value = Light; break;   
             case HandleSensorValue.POWER: value = Power; break;       
             case HandleSensorValue.JOYSTICK_X1: value = JoystickX1; break;      
             case HandleSensorValue.JOYSTICK_Y1: value = JoystickY1;break;   
             case HandleSensorValue.JOYSTICK_X2: value = JoystickX2;break;   
-            case HandleSensorValue.JOYSTICK_Y2: value = JoystickY2;break;   
-            case HandleSensorValue.ULTRASONIC: value = UltrasonicValue;break;     
-            case HandleSensorValue.KNOB: value = Knob;break;         
+            case HandleSensorValue.JOYSTICK_Y2: value = JoystickY2;break;      
         }
         return value;
     }
@@ -817,11 +781,132 @@ namespace handlebit {
         else
             return -1; 
     }
+
+ let distanceBak = 0;
+/**
+* Get the distance of ultrasonic detection to the obstacle 
+*/  
+//% weight=80 blockId=handlebit_ultrasonic  block="Ultrasonic|port %port|distance(cm)"
+export function handlebit_ultrasonic(port: ultrasonicPort): number {
+    let echoPin: DigitalPin = DigitalPin.P1;
+    let trigPin: DigitalPin = DigitalPin.P2;
+    switch (port)
+    {
+        case ultrasonicPort.port1:
+            echoPin = DigitalPin.P1;
+            trigPin = DigitalPin.P2;
+            break;
+        case ultrasonicPort.port2:
+            echoPin = DigitalPin.P19;
+            trigPin = DigitalPin.P20;
+            break;
+    }
+    pins.setPull(echoPin, PinPullMode.PullNone);
+    pins.setPull(trigPin, PinPullMode.PullNone);
+    pins.digitalWritePin(trigPin, 0);
+    control.waitMicros(5);
+    pins.digitalWritePin(trigPin, 1);
+    control.waitMicros(10);
+    pins.digitalWritePin(trigPin, 0);
+
+    let d = pins.pulseIn(echoPin, PulseValue.High, 15000);
+    let distance = d;
+    // filter timeout spikes
+    if (distance == 0 || distance >= 13920){
+        distance = distanceBak;
+    }
+    else
+        distanceBak = d;
+    return Math.round(distance * 10 / 6 / 58);
+}
+
+
+/**
+* Set the fan speed
+*/  
+//% weight=78 blockId=handle_setFanSpeed  block="Set fan |port %port|and |speed %speed|"
+//% speed.min=-100 speed.max=100   
+export function handle_setFanSpeed(port: HandleFanPort, speed: number)
+{
+    let value: number;
+    if (port == HandleFanPort.port1)
+    {
+        if(speed >= 0)
+        {
+            value = mapRGB(speed, 0, 100, 0, 1023);
+            pins.analogWritePin(AnalogPin.P1, value);
+            pins.analogWritePin(AnalogPin.P2,0);
+        }  
+        else if (speed < 0)
+        {
+            value = mapRGB(-1*speed, 0, 100, 0, 1023);
+            pins.analogWritePin(AnalogPin.P2, value);
+            pins.analogWritePin(AnalogPin.P1,0);
+        }
+    }
+    else if (port == HandleFanPort.port2)
+    {
+        if(speed >= 0)
+        {
+            value = mapRGB(speed, 0, 100, 0, 1023);
+            pins.analogWritePin(AnalogPin.P19, value);
+            pins.analogWritePin(AnalogPin.P20,0);
+        }  
+        else if (speed < 0)
+        {
+            value = mapRGB(-1*speed, 0, 100, 0, 1023);
+            pins.analogWritePin(AnalogPin.P20, value);
+            pins.analogWritePin(AnalogPin.P19,0);
+        }
+    }
+}
+    
+    /**
+     * Get the knob value
+     */
+    //% weight=76 blockId=handle_getKnobValue block="Get knob |port %port| value(0~100)"
+    export function handle_getKnobValue(port: HandleKnobPort):number
+    {
+        let knobValue: number;
+        if (port == HandleKnobPort.port1)
+        {
+            knobValue = pins.analogReadPin(AnalogPin.P1); 
+        }
+        knobValue = mapRGB(knobValue, 0, 1023, 0, 100);
+        return knobValue;
+    }
+
+    /**
+     * Check touch button status
+     */
+    //% weight=74 blockId=handle_getTouchValue block="The touch button |port %port| is pressd"
+    export function handle_getTouchValue(port: ultrasonicPort):boolean
+    {
+        let value: number;
+        if (port == ultrasonicPort.port1)
+        {
+            value = pins.digitalReadPin(DigitalPin.P1); 
+        }
+        else if (port == ultrasonicPort.port2)
+        {
+            value = pins.digitalReadPin(DigitalPin.P19); 
+        }
+
+       if (value == 0)
+        {
+            return true;   
+        }
+        else
+       {
+           return false;  
+        }
+        
+    }
     
     /**
      *  The Melody of Little star   
      */
-    //% weight=80 blockId=littleStarMelody block="Little star melody"
+    //% weight=72 blockId=littleStarMelody block="Little star melody"
     export function littleStarMelody(): string[] {
         return ["C4:4", "C4:4", "G4:4", "G4:4", "A4:4", "A4:4", "G4:4", "F4:4", "F4:4", "E4:4", "E4:4", "D4:4", "D4:4", "C4:4", "G4:4", "G4:4", "F4:4", "F4:4", "E4:4", "E4:4", "D4:4", "G4:4", "G4:4", "F4:4", "F4:4", "E4:4", "E4:4", "D4:4", "C4:4", "C4:4", "G4:4", "G4:4", "A4:4", "A4:4", "G4:4", "F4:4", "F4:4", "E4:4", "E4:4", "D4:4", "D4:4", "C4:4"];
     }
