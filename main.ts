@@ -164,7 +164,7 @@ namespace handlebit {
     /**
      * Display the colored lights, and set the color of the colored lights to match the use. After setting the color of the colored lights, the color of the lights must be displayed.
      */
-    //% weight=72 blockId=qdee_showLight block="Show light"
+    //% weight=93 blockId=qdee_showLight block="Show light"
     export function handle_showLight() {
         lhRGBLight.show();
     }
