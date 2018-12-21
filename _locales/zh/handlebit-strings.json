@@ -43,6 +43,7 @@
 	"handlebit.HandleLights.All|block":"全部",
 	"handlebit.HandleFanPort.port1|block":"接口1",
 	"handlebit.HandleKnobPort.port1|block":"接口1",
+	"handlebit.HandleKnobPort.port2|block":"接口2",
 	"handlebit.handlebit_ultrasonic|block":"超声波传感|%port|器值(Cm)",
 	"handlebit.handle_setFanSpeed|block":"设置风扇接口|%port|和速度|%speed|(-100~100)",
 	"handlebit.handle_getKnobValue|block":"获取旋钮|%port|值(0~100)",

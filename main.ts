@@ -84,7 +84,9 @@ namespace handlebit {
 
     export enum HandleKnobPort {
         //% block="Port 1"
-        port1 = 0x01
+        port1 = 0x01,
+        //% block="Port 2"
+        port2 = 0x02
     }
 
     export enum HandleTouchPort {
@@ -846,7 +848,15 @@ export function handle_setFanSpeed(port: HandleFanPort, speed: number)
     export function handle_getKnobValue(port: HandleKnobPort):number
     {
         let knobValue: number;
-        knobValue = pins.analogReadPin(AnalogPin.P1); 
+        switch (port)
+        {
+            case HandleKnobPort.port1:
+                knobValue = pins.analogReadPin(AnalogPin.P1);
+                break;
+            case HandleKnobPort.port2:
+                knobValue = pins.analogReadPin(AnalogPin.P20);
+                break;
+        }
         knobValue = mapRGB(knobValue, 0, 1023, 0, 100);
         return knobValue;
     }
