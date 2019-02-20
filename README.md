@@ -1,6 +1,6 @@
 # handlebit
 
-Extension for Lewansoul Handlebit
+Extension for LOBOT Handlebit
 
 ## License
 
