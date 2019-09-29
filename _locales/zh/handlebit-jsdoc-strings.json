@@ -1,15 +1,16 @@
 {
 	"handlebit.handlebitInit":"Handlebit板初始化，请在开机时执行",
-	"handlebit.setServoPosition":"设置舵机角度,角度范围0~180",
-	"handlebit.setPixelRGB":"设置彩灯颜色",
-	"handlebit.setPixelRGBArgs":"设置彩灯颜色，输入索引，范围1到9",
+	"handlebit.handle_setPixelRGB":"设置彩灯颜色",
+	"handlebit.handle_setPixelRGBArgs":"设置彩灯颜色，输入索引，范围1到9",
 	"handlebit.clearLight":"清除彩灯颜色，关闭彩灯",
-	"handlebit.adjustWhite":"颜色传感器校正白色，每次开机第一次使用颜色传感器都必须先校正白色",
-	"handlebit.adjustBlack":"颜色传感器校正黑色，每次开机第一次使用颜色传感器都必须先校正白色，然后校正黑色",
-	"handlebit.checkCurrentColor":"颜色传感器获取颜色值，必须先校正白色和黑色方可执行",
+	"handlebit.handle_checkCurrentColor":"获取颜色传感器检测到的颜色值",
 	"handlebit.littleStarMelody":"小星星旋律",
 	"handlebit.onHandleButtonPressed":"侦测按键手柄按下状态",
-	"handlebit.getHandleSensorValue":"返回手柄传感器值",
-	"handlebit.setMotorSpeed":"控制马达正反转和速度",
-	"handlebit.setLedBrightness":"设置灯光亮度"
+	"handlebit.handle_getHandleSensorValue":"返回手柄传感器值",
+	"handlebit.handle_setFanSpeed":"设置风扇模块的速度",
+	"handlebit.handle_shake":"开启或者关闭手柄震动",
+	"handlebit.handle_getKnobValue":"返回旋钮传感器的值",
+	"handlebit.handlebit_ultrasonic":"返回超声波传感器检测值",
+	"handlebit.handle_init_colorSensor":"颜色传感器初始化",
+	"handlebit.handle_showLight":"显示彩灯"	
 }
