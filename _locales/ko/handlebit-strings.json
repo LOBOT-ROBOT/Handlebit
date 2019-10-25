@@ -1,5 +1,5 @@
 {
-	"handlebit."handlebitInit|block":"핸들빗 초기화",
+	"handlebit.handlebitInit|block":"핸들빗 초기화",
 	"handlebit.handle_setPixelRGB|block":"|%lightoffset|색을 %rgb로 설정 ",
 	"handlebit.handle_setPixelRGBArgs|block":"|%lightoffset| 색을 %rgb로 설정, 범위 1-9",
 	"handlebit.handle_showLight|block":"불빛 켜기",
@@ -40,7 +40,7 @@
 	"handlebit.HandleLights.All|block":"A",
 	"handlebit.HandleFanPort.port1|block":"포트1",
 	"handlebit.HandleKnobPort.port1|block":"포트1",
-	"handlebit."handlebit_ultrasonic|block":"초음파 센서|port %port|거리(cm)",
+	"handlebit.handlebit_ultrasonic|block":"초음파 센서|port %port|거리(cm)",
 	"handlebit.handle_setFanSpeed|block":"프로팰러를 |port %port|와 |speed %speed|로 설정",
 	"handlebit.handle_getKnobValue|block":"다이얼 |port %port| 값(0~100)",
 	"handlebit.handle_shake|block":"흔들림|%state"
