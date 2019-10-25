@@ -13,6 +13,7 @@
         "sendbuffer.asm",
         "_locales/zh/handlebit-strings.json",
         "_locales/zh/handlebit-jsdoc-strings.json"
+		"_locales/ko/handlebit-strings.json"
     ],
     "testFiles": [
         "test.ts"
