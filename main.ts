@@ -412,7 +412,7 @@ namespace handlebit {
      * Initialize the color sensor,please execute at boot time
      */
     //% weight=90 blockId=handle_init_colorSensor block="Initialize color sensor port at %port"
-    export function startbit_init_colorSensor(port: colorSensorPort) {
+    export function handle_init_colorSensor(port: colorSensorPort) {
         InitColor();
         enableLightSensor(true);
         control.waitMicros(100);
@@ -422,7 +422,7 @@ namespace handlebit {
 	 *  Color sensor return the color.
 	 */
     //% weight=88 blockGap=50 blockId=handle_checkCurrentColor block="Current color %color"
-    export function startbit_checkCurrentColor(color: handle_Colors): boolean {
+    export function handle_checkCurrentColor(color: handle_Colors): boolean {
         let c = i2cread(APDS9960_CDATAL) + i2cread(APDS9960_CDATAH) * 256;
         let r = i2cread(APDS9960_RDATAL) + i2cread(APDS9960_RDATAH) * 256;
         let g = i2cread(APDS9960_GDATAL) + i2cread(APDS9960_GDATAH) * 256;
