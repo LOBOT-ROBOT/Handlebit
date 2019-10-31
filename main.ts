@@ -71,7 +71,9 @@ namespace handlebit {
         //% block="Black"
         Black = 0x04,
         //% block="White"
-        White = 0x05
+        White = 0x05,
+        //% block="None"
+        None = 0x06
     }
 
     export enum HandleFanPort {
@@ -135,16 +137,26 @@ namespace handlebit {
     }
 
     /**
+         * Set the brightness of the strip. This flag only applies to future operation.
+         * @param brightness a measure of LED brightness in 0-255. eg: 255
+    */
+    //% blockId="handle_setBrightness" block="set brightness %brightness"
+    //% weight=97
+    export function handle_setBrightness(brightness: number): void {
+        lhRGBLight.setBrightness(brightness);
+    }
+
+    /**
      * Set the color of the colored lights.
      */
-    //% weight=99 blockId=setPixelRGB block="Set|%lightoffset|color to %rgb"
+    //% weight=98 blockId=setPixelRGB block="Set|%lightoffset|color to %rgb"
     export function handle_setPixelRGB(lightoffset: HandleLights, rgb: HandleRGBColors) {
         lhRGBLight.setPixelColor(lightoffset, rgb);
     }
     /**
      * Set RGB Color argument
      */
-    //% weight=98 blockId=setPixelRGBArgs block="Set|%lightoffset|color to %rgb,color range from 1 to 9"
+    //% weight=96 blockId=setPixelRGBArgs block="Set|%lightoffset|color to %rgb,color range from 1 to 9"
     //% rgb.min=1 rgb.max=9
     export function handle_setPixelRGBArgs(lightoffset: HandleLights, rgb: number) {
         lhRGBLight.setPixelColor(lightoffset, rgb);
@@ -153,14 +165,14 @@ namespace handlebit {
     /**
      * Display the colored lights, and set the color of the colored lights to match the use. After setting the color of the colored lights, the color of the lights must be displayed.
      */
-    //% weight=97 blockId=qdee_showLight block="Show light"
+    //% weight=94 blockId=qdee_showLight block="Show light"
     export function handle_showLight() {
         lhRGBLight.show();
     }
     /**
      * Clear the color of the colored lights and turn off the lights.
      */
-    //% weight=96 blockGap=50 blockId=clearLight block="Clear light"
+    //% weight=92 blockGap=50 blockId=clearLight block="Clear light"
     export function clearLight() {
         lhRGBLight.clear();
     }
@@ -177,8 +189,6 @@ namespace handlebit {
     const APDS9960_AILTH = 0x85;
     const APDS9960_AIHTL = 0x86;
     const APDS9960_AIHTH = 0x87;
-    const APDS9960_PILT = 0x89;
-    const APDS9960_PIHT = 0x8B;
     const APDS9960_PERS = 0x8C;
     const APDS9960_CONFIG1 = 0x8D;
     const APDS9960_PPULSE = 0x8E;
@@ -194,60 +204,42 @@ namespace handlebit {
     const APDS9960_GDATAH = 0x99;
     const APDS9960_BDATAL = 0x9A;
     const APDS9960_BDATAH = 0x9B;
-    const APDS9960_PDATA = 0x9C;
     const APDS9960_POFFSET_UR = 0x9D;
     const APDS9960_POFFSET_DL = 0x9E;
     const APDS9960_CONFIG3 = 0x9F;
+    const APDS9960_GCONF4 = 0xAB;
+    const APDS9960_AICLEAR = 0xE7;
 
 
     /* LED Drive values */
     const LED_DRIVE_100MA = 0;
-    const LED_DRIVE_50MA = 1;
-    const LED_DRIVE_25MA = 2;
-    const LED_DRIVE_12_5MA = 3;
 
     /* ALS Gain (AGAIN) values */
-    const AGAIN_1X = 0;
     const AGAIN_4X = 1;
-    const AGAIN_16X = 2;
-    const AGAIN_64X = 3;
 
     /* Default values */
     const DEFAULT_ATIME = 219;    // 103ms
     const DEFAULT_WTIME = 246;    // 27ms
     const DEFAULT_PROX_PPULSE = 0x87;    // 16us, 8 pulses
-    const DEFAULT_GESTURE_PPULSE = 0x89;    // 16us, 10 pulses
     const DEFAULT_POFFSET_UR = 0;       // 0 offset
     const DEFAULT_POFFSET_DL = 0;       // 0 offset      
     const DEFAULT_CONFIG1 = 0x60;    // No 12x wait (WTIME) factor
-    const DEFAULT_PILT = 0;       // Low proximity threshold
-    const DEFAULT_PIHT = 50;      // High proximity threshold
     const DEFAULT_AILT = 0xFFFF;  // Force interrupt for calibration
     const DEFAULT_AIHT = 0;
     const DEFAULT_PERS = 0x11;    // 2 consecutive prox or ALS for int.
     const DEFAULT_CONFIG2 = 0x01;    // No saturation interrupts or LED boost  
     const DEFAULT_CONFIG3 = 0;       // Enable all photodiodes, no SAI
-    const DEFAULT_GPENTH = 40;      // Threshold for entering gesture mode
-    const DEFAULT_GEXTH = 30;      // Threshold for exiting gesture mode    
-    const DEFAULT_GCONF1 = 0x40;    // 4 gesture events for int., 1 for exit
-    const DEFAULT_GOFFSET = 0;       // No offset scaling for gesture mode
-    const DEFAULT_GPULSE = 0xC9;    // 32us, 10 pulses
-    const DEFAULT_GCONF3 = 0;       // All photodiodes active during gesture
-    const DEFAULT_GIEN = 0;       // Disable gesture interrupts
     const DEFAULT_LDRIVE = LED_DRIVE_100MA;
     const DEFAULT_AGAIN = AGAIN_4X;
 
     const OFF = 0;
-    const ON = 1;
     const POWER = 0;
     const AMBIENT_LIGHT = 1;
-    const PROXIMITY = 2;
-    const WAIT = 3;
-    const AMBIENT_LIGHT_INT = 4;
-    const PROXIMITY_INT = 5;
-    const GESTURE = 6;
     const ALL = 7;
 
+    const red_wb = 2130;
+    const green_wb = 3500;
+    const blue_wb = 4620;
 
     function i2cwrite(reg: number, value: number) {
         let buf = pins.createBuffer(2);
@@ -262,13 +254,14 @@ namespace handlebit {
         return val;
     }
 
+
     function InitColor(): boolean {
         let id = i2cread(APDS9960_ID);
         //  serial.writeLine("id:")
         //  serial.writeNumber(id); 
-        if (!(id == APDS9960_ID_1 || id == APDS9960_ID_2)) {
-            return false;
-        }
+        // if (!(id == APDS9960_ID_1 || id == APDS9960_ID_2)) {
+        //     return false;
+        // }
         //  serial.writeLine("set mode:")
         setMode(ALL, OFF);
         i2cwrite(APDS9960_ATIME, DEFAULT_ATIME);
@@ -285,6 +278,56 @@ namespace handlebit {
         i2cwrite(APDS9960_CONFIG2, DEFAULT_CONFIG2);
         i2cwrite(APDS9960_CONFIG3, DEFAULT_CONFIG3);
         return true;
+    }
+
+    function setLEDDrive(drive: number) {
+        let val = i2cread(APDS9960_CONTROL);
+        /* Set bits in register to given value */
+        drive &= 0b00000011;
+        drive = drive << 6;
+        val &= 0b00111111;
+        val |= drive;
+        i2cwrite(APDS9960_CONTROL, val);
+    }
+
+    function setLightIntLowThreshold(threshold: number) {
+        let val_low = threshold & 0x00FF;
+        let val_high = (threshold & 0xFF00) >> 8;
+        i2cwrite(APDS9960_AILTL, val_low);
+        i2cwrite(APDS9960_AILTH, val_high);
+    }
+
+    function setLightIntHighThreshold(threshold: number) {
+        let val_low = threshold & 0x00FF;
+        let val_high = (threshold & 0xFF00) >> 8;
+        i2cwrite(APDS9960_AIHTL, val_low);
+        i2cwrite(APDS9960_AIHTH, val_high);
+    }
+
+
+    function rgb2hue(r: number, g: number, b: number): number {
+        let max = Math.max(r, Math.max(g, b))
+        let min = Math.min(r, Math.min(g, b))
+        let c = max - min;
+        let hue = 0;
+        let segment = 0;
+        let shift = 0;
+        if (c == 0)
+            return 0;
+        if ((r > g) && (r > b)) {
+            segment = (60.0 * (g - b)) / c;
+            if (segment < 0)
+                hue = segment + 360;
+        }
+        else if ((g > b) && (g > r)) {
+            segment = (60.0 * (b - r)) / c;
+            hue = segment + 120;
+        }
+        else if ((b > g) && (b > r)) {
+            segment = (60.0 * (r - g)) / c;
+            hue = segment + 240;
+        }
+        return hue;
     }
 
     function setMode(mode: number, enable: number) {
@@ -314,30 +357,6 @@ namespace handlebit {
     function getMode(): number {
         let enable_value = i2cread(APDS9960_ENABLE);
         return enable_value;
-    }
-
-    function setLEDDrive(drive: number) {
-        let val = i2cread(APDS9960_CONTROL);
-        /* Set bits in register to given value */
-        drive &= 0b00000011;
-        drive = drive << 6;
-        val &= 0b00111111;
-        val |= drive;
-        i2cwrite(APDS9960_CONTROL, val);
-    }
-
-    function setLightIntLowThreshold(threshold: number) {
-        let val_low = threshold & 0x00FF;
-        let val_high = (threshold & 0xFF00) >> 8;
-        i2cwrite(APDS9960_AILTL, val_low);
-        i2cwrite(APDS9960_AILTH, val_high);
-    }
-
-    function setLightIntHighThreshold(threshold: number) {
-        let val_low = threshold & 0x00FF;
-        let val_high = (threshold & 0xFF00) >> 8;
-        i2cwrite(APDS9960_AIHTL, val_low);
-        i2cwrite(APDS9960_AIHTH, val_high);
     }
 
     function enableLightSensor(interrupts: boolean) {
@@ -382,114 +401,80 @@ namespace handlebit {
     }
 
     function readAmbientLight(): number {
-        let val_byte = i2cread(APDS9960_CDATAL);
-        let val = val_byte;
-        val_byte = i2cread(APDS9960_CDATAH);
-        val = val + val_byte << 8;
+        let val = i2cread(APDS9960_CDATAL);
+        let val_byte = i2cread(APDS9960_CDATAH);
+        val = val + val_byte * 256;
         return val;
     }
 
-    function readRedLight(): number {
 
-        let val_byte = i2cread(APDS9960_RDATAL);
-        let val = val_byte;
-        val_byte = i2cread(APDS9960_RDATAH);
-        val = val + val_byte << 8;
-        return val;
+    /**
+     * Initialize the color sensor,please execute at boot time
+     */
+    //% weight=90 blockId=handle_init_colorSensor block="Initialize color sensor port at %port"
+    export function startbit_init_colorSensor(port: colorSensorPort) {
+        InitColor();
+        enableLightSensor(true);
+        control.waitMicros(100);
     }
 
-    function readGreenLight(): number {
-
-        let val_byte = i2cread(APDS9960_GDATAL);
-        let val = val_byte;
-        val_byte = i2cread(APDS9960_GDATAH);
-        val = val + val_byte << 8;
-        return val;
-    }
-
-    function readBlueLight(): number {
-
-        let val_byte = i2cread(APDS9960_BDATAL);
-        let val = val_byte;
-        val_byte = i2cread(APDS9960_BDATAH);
-        val = val + val_byte << 8;
-        return val;
-    }
-
-	/**
-	 * Init Color Sensor
+    /**
+	 *  Color sensor return the color.
 	 */
-    export function initColorSensor() {
-        InitColor();
-        enableLightSensor(false);
-        control.waitMicros(100);
-    }
+    //% weight=88 blockGap=50 blockId=handle_checkCurrentColor block="Current color %color"
+    export function startbit_checkCurrentColor(color: handle_Colors): boolean {
+        let c = i2cread(APDS9960_CDATAL) + i2cread(APDS9960_CDATAH) * 256;
+        let r = i2cread(APDS9960_RDATAL) + i2cread(APDS9960_RDATAH) * 256;
+        let g = i2cread(APDS9960_GDATAL) + i2cread(APDS9960_GDATAH) * 256;
+        let b = i2cread(APDS9960_BDATAL) + i2cread(APDS9960_BDATAH) * 256;
 
-    /**
- * Initialize the color sensor,please execute at boot time
- */
-    //% weight=95 blockId=handle_init_colorSensor block="Initialize color sensor port at %port"
-    export function handle_init_colorSensor(port: colorSensorPort) {
-        InitColor();
-        enableLightSensor(false);
-        control.waitMicros(100);
-    }
+        // serial.writeNumber(c);
+        // serial.writeLine("->ccc");
+        // serial.writeNumber(r);
+        // serial.writeLine("->red");
+        // serial.writeNumber(g);
+        // serial.writeLine("->green");
+        // serial.writeNumber(b);
+        // serial.writeLine("->blue");
 
+        if (r > red_wb)
+            r = red_wb;
+        if (g > green_wb)
+            g = green_wb;
+        if (b > blue_wb)
+            b = blue_wb;
 
-    /**
-       *  Color sensor return the color.
-       */
-    //% weight=94 blockId=handle_checkCurrentColor block="Current color %color"
-    export function handle_checkCurrentColor(color: handle_Colors): boolean {
-        let r = readRedLight();
-        let g = readGreenLight();
-        let b = readBlueLight();
-        let t = handle_Colors.Red;
-
-        if (r > g) {
-            t = handle_Colors.Red;
-        }
-        else {
-            t = handle_Colors.Green;
-        }
-
-        if (t == handle_Colors.Green && g < b) {
-            t = handle_Colors.Blue;
-        }
-        if (t == handle_Colors.Red && r < b) {
-            t = handle_Colors.Blue;
-        }
-        //  serial.writeNumber(r); 
-        //  serial.writeLine("->red");
-        //  serial.writeNumber(g); 
-        //  serial.writeLine("->green"); 
-        //  serial.writeNumber(b); 
-        //  serial.writeLine("->blue"); 
-        if (r < 260 && g < 260 && b < 530) {
-            t = handle_Colors.Black;
-            return (color == t);
-        }
-        else if (r > 3200 && g > 5000 && b > 7000) {
+        r = Math.round(mapRGB(r, 0, red_wb, 0, 255));
+        g = Math.round(mapRGB(g, 0, green_wb, 0, 255));
+        b = Math.round(mapRGB(b, 0, blue_wb, 0, 255));
+        // serial.writeNumber(r);
+        // serial.writeLine("->rred");
+        // serial.writeNumber(g);
+        // serial.writeLine("->ggreen");
+        // serial.writeNumber(b);
+        // serial.writeLine("->bblue");
+         let hsv = rgb2hue(r, g, b);
+        // serial.writeNumber(hsv);
+        // serial.writeLine("->hsv");
+        let t = handle_Colors.None;
+        if (c > 2200 && r > 65 && g > 65 && b > 65) {
             t = handle_Colors.White;
-            return (color == t);
         }
-        if (t == handle_Colors.Blue && b > 2000) {
-            // serial.writeLine("blue");
-
+        else if (c > 800) {
+            if (hsv < 8 || hsv > 350)
+                t = handle_Colors.Red;
+            else if (hsv > 60 && hsv < 170) {
+                t = handle_Colors.Green;
+            }
+            else if (hsv > 210 && hsv < 230) {
+                t = handle_Colors.Blue;
+            }
         }
-        else if (t == handle_Colors.Green && g > 1200) {
-            // serial.writeLine("green");
-        }
-        else if (t == handle_Colors.Red && r > 1200) {
-            //serial.writeLine("red");
-        }
-        else {
-            //serial.writeLine("none");
-            return false;
+        else if (c > 200 && r > 10 && g > 7 && b > 7 && r < 16.5 && g < 15 && b < 14) {
+            t = handle_Colors.Black;
         }
         return (color == t);
     }
-
 
     function mapRGB(x: number, in_min: number, in_max: number, out_min: number, out_max: number): number {
         return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
@@ -606,7 +591,7 @@ namespace handlebit {
      * @param button the button that needs to be pressed
      * @param body code to run when event is raised
      */
-    //% weight=93 blockId=onHandleButtonPressed block="on button|%button|pressed"
+    //% weight=86 blockId=onHandleButtonPressed block="on button|%button|pressed"
     export function onHandleButtonPressed(button: HandleButton, body: Action) {
         control.onEvent(EventBusSource.MES_DPAD_CONTROLLER_ID, button, body);
     }
@@ -614,7 +599,7 @@ namespace handlebit {
     /**
      * Returns the handle sensor value.
      */
-    //% weight=92 blockGap=50 blockId=handle_getHandleSensorValue block="handle|%type|sensor value"
+    //% weight=84 blockGap=50 blockId=handle_getHandleSensorValue block="handle|%type|sensor value"
     export function handle_getHandleSensorValue(type: HandleSensorValue): number {
         let value: number = 0;
         switch (type) {
@@ -672,7 +657,7 @@ namespace handlebit {
     /**
     * Get the distance of ultrasonic detection to the obstacle 
     */
-    //% weight=91 blockId=handlebit_ultrasonic  block="Ultrasonic|port %port|distance(cm)"
+    //% weight=82 blockId=handlebit_ultrasonic  block="Ultrasonic|port %port|distance(cm)"
     export function handlebit_ultrasonic(port: ultrasonicPort): number {
         let echoPin: DigitalPin = DigitalPin.P2;
         let trigPin: DigitalPin = DigitalPin.P1;
@@ -700,7 +685,7 @@ namespace handlebit {
     /**
     * Set the fan speed
     */
-    //% weight=90 blockId=handle_setFanSpeed  block="Set fan |port %port|and |speed %speed|"
+    //% weight=80 blockId=handle_setFanSpeed  block="Set fan |port %port|and |speed %speed|"
     //% speed.min=-100 speed.max=100   
     export function handle_setFanSpeed(port: HandleFanPort, speed: number) {
         let value: number;
@@ -721,7 +706,7 @@ namespace handlebit {
     /**
      * Get the knob value
      */
-    //% weight=89 blockId=handle_getKnobValue block="Get knob |port %port| value(0~100)"
+    //% weight=78 blockId=handle_getKnobValue block="Get knob |port %port| value(0~100)"
     export function handle_getKnobValue(port: HandleKnobPort): number {
         let knobValue: number;
         serial.writeNumber(0);
@@ -737,7 +722,7 @@ namespace handlebit {
     /**
      *  The Melody of Little star   
      */
-    //% weight=88 blockId=littleStarMelody block="Little star melody"
+    //% weight=76 blockId=littleStarMelody block="Little star melody"
     export function littleStarMelody(): string[] {
         return ["C4:4", "C4:4", "G4:4", "G4:4", "A4:4", "A4:4", "G4:4", "F4:4", "F4:4", "E4:4", "E4:4", "D4:4", "D4:4", "C4:4", "G4:4", "G4:4", "F4:4", "F4:4", "E4:4", "E4:4", "D4:4", "G4:4", "G4:4", "F4:4", "F4:4", "E4:4", "E4:4", "D4:4", "C4:4", "C4:4", "G4:4", "G4:4", "A4:4", "A4:4", "G4:4", "F4:4", "F4:4", "E4:4", "E4:4", "D4:4", "D4:4", "C4:4"];
     }
@@ -746,7 +731,7 @@ namespace handlebit {
     * Shake
     *@param state is boolean, eg: true
     */
-    //% weight=87 blockId=handle_shake  block="handle shake|%state"  
+    //% weight=74 blockId=handle_shake  block="handle shake|%state"  
     export function handle_shake(state: ShakeState) {
         if (state == ShakeState.ON)
             pins.digitalWritePin(DigitalPin.P16, 1);
