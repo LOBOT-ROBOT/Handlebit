@@ -1,6 +1,6 @@
 # handlebit
 
-Extension for LOBOT Handlebit
+Extension for Hiwonder Handlebit
 
 ## License
 
