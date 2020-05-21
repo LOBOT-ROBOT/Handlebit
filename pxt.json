@@ -1,7 +1,7 @@
 {
     "name": "handlebit",
     "version": "0.0.1",
-    "description": "Extension for LewanSoul handlebit",
+    "description": "Extension for Hiwonder handlebit",
     "license": "MIT",
     "dependencies": {
         "core": "*"
